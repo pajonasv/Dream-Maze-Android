@@ -1,0 +1,16 @@
+package edu.oldwestbury.vpajonas;
+
+public enum ActTypes {
+    ACT_DONOTHING,
+    ACT_MOVE,
+    ACT_KEEPMOVING,
+    ACT_ATTACK,
+    ACT_TALK,
+    ACT_REASON,
+    REACT_DONOTHING,
+    REACT_DELETEME,
+    REACT_DELETEITEM,
+    REACT_DELETEMEACTORS,
+    REACT_DELETEMEDROPITEM,
+    REACT_BECOMEPARTNER
+}
