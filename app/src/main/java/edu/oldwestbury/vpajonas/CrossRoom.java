@@ -116,9 +116,9 @@ public class CrossRoom implements Room {
         }
 
         enemySpawnPoints = new DTile[]{
-                tiles[2][2],
-                tiles[2][height-2],
-                tiles[width-2][2],
+                tiles[1][1],
+                tiles[1][height-2],
+                tiles[width-2][1],
                 tiles[width-2][height-2]
 
         };

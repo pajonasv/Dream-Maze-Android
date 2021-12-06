@@ -62,8 +62,6 @@ public class Floor {
 
         errorText += treeMap.getErrorText();
 
-
-        tiles[treeMap.getStartRoom().getXOffset()+1][treeMap.getStartRoom().getYOffset()+1].setActor(player);
         actors = treeMap.getActors();
 
     }

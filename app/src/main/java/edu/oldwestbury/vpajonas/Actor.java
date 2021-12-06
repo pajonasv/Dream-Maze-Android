@@ -27,5 +27,7 @@ public interface Actor {
     public int getSound();
     public int[] getSoundSet();
     public ActTypes getBehavior();
+    public void refreshShape();
+    public Rect getSpritePart();
 
 }

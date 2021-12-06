@@ -39,9 +39,10 @@ public class FloorItem implements Actor {
         heldItem = heldItemPassed;
 
         BitmapFactory bitmapFac = new BitmapFactory();
-        if(heldItem instanceof  RecoveryHeartHeldItem){
-            sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.health);
-        }
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+
+        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.item_spritesheet,options);
 
 
         if(tileSetPassed != null) {
@@ -77,11 +78,14 @@ public class FloorItem implements Actor {
 
         BitmapFactory bitmapFac = new BitmapFactory();
 
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+
         if(keyOrMoney == 0){
-            sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.key);
+            sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.key_spritesheet,options);
         }
         else if (keyOrMoney == 1){
-            sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.money);
+            sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.gold_spritesheet,options);
             amount = 3;
         }
 
@@ -95,10 +99,7 @@ public class FloorItem implements Actor {
         screenXYPosFin = passedPlayer.getScreenXYPosFin();
 
 
-        shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
-                (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH,
-                (tileX + 1 + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
-                (tileY + 1 + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH);
+        refreshShape();
 
         touchable  = true;
         gotMe = false;
@@ -119,7 +120,7 @@ public class FloorItem implements Actor {
                     (tileY + 1 + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH);
 
         }catch (Exception e){
-            errorText += "RecoveryHeartFloorItem.update() ERROR 1 -" + e.toString();
+            errorText += "FloorItem.update() ERROR 1 -" + e.toString();
         }
 
     }
@@ -204,6 +205,10 @@ public class FloorItem implements Actor {
                     gotMe = true;
                     return;
                 }
+                else if(heldItem instanceof HeldWeapon){
+                    ((HeldWeapon)heldItem).Use();
+                    return;
+                }
 
 
                 playerStats.addItem(heldItem);
@@ -273,5 +278,18 @@ public class FloorItem implements Actor {
     @Override
     public ActTypes getBehavior(){
         return ActTypes.ACT_DONOTHING;
+    }
+
+    @Override
+    public void refreshShape() {
+        shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
+                (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH,
+                (tileX + 1 + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
+                (tileY + 1 + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH);
+    }
+
+    @Override
+    public Rect getSpritePart() {
+        return null;
     }
 }

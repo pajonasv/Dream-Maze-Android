@@ -98,10 +98,10 @@ public class BridgedCenterRoom implements Room {
                 tiles[8][1]
         };
         itemSpawnPoints = new DTile[]{
-                tiles[1][1],
-                tiles[8][8],
-                tiles[1][8],
-                tiles[8][1]
+                tiles[4][4],
+                tiles[4][5],
+                tiles[5][4],
+                tiles[5][5]
         };
     }
 

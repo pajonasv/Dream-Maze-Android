@@ -5,4 +5,5 @@ public interface Enemy extends Actor {
     public Statsheet getStats();
     public void setEnemyInteractMenu(EnemyInteractMenu enemyInteractMenuPassed);
     public void setWillBecomePartner(boolean toSet);
+    public float getReasonPercent();
 }

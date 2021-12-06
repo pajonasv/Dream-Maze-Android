@@ -199,5 +199,19 @@ public class LockedDoor implements Actor {
         return ActTypes.ACT_DONOTHING;
     }
 
+    @Override
+    public void refreshShape() {
+        shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles)* screenXYPosFin.tileW * screenXYPosFin.modifierW,
+                (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles)* screenXYPosFin.tileH * screenXYPosFin.modifierH,
+                (tileX+1+ screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles)* screenXYPosFin.tileW * screenXYPosFin.modifierW,
+                (tileY+1+ screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles)* screenXYPosFin.tileH * screenXYPosFin.modifierH);
+
+    }
+
+    @Override
+    public Rect getSpritePart() {
+        return null;
+    }
+
 
 }

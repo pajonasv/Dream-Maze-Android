@@ -124,8 +124,13 @@ public class TreeMapGenerator {
                     }
                     if(!impossibleRoomMade) {
                         if (roomHeight == roomWidth) {
+                            if(roomWidth == partitionSize && roomHeight == partitionSize && rand.nextInt(2) == 0){
 
-                            toAddNode = new Node(new CrossRoom(context, floorTheme, roomWidth, roomHeight, xOffset, yOffset, direction), current);
+                                toAddNode = new Node(new BridgedCenterRoom(context, floorTheme, xOffset, yOffset, direction), current);
+                            }
+                            else {
+                                toAddNode = new Node(new CrossRoom(context, floorTheme, roomWidth, roomHeight, xOffset, yOffset, direction), current);
+                            }
                         } else {
                             toAddNode = new Node(new EmptyRoom(context, floorTheme, roomWidth, roomHeight, xOffset, yOffset, direction), current);
                         }
@@ -179,8 +184,26 @@ public class TreeMapGenerator {
             startRoom.getData().getTiles()[player.getTileX()][player.getTileY()].setActor(player);
             if(player.getPartner() != null){
                 player.getPartner().setTiles(startRoom.getData().getTiles());
-                player.getPartner().setTileX(player.getTileX()+1);
-                player.getPartner().setTileY(player.getTileY());
+                if ( !startRoom.getData().getTiles()[player.getTileX()+1][player.getTileY()].getIsSolid()  &&
+                        startRoom.getData().getTiles()[player.getTileX()+1][player.getTileY()].getActor() == null) {
+                    player.getPartner().setTileX(player.getTileX() + 1);
+                    player.getPartner().setTileY(player.getTileY());
+                }
+                else if ( !startRoom.getData().getTiles()[player.getTileX()-1][player.getTileY()].getIsSolid()  &&
+                        startRoom.getData().getTiles()[player.getTileX()-1][player.getTileY()].getActor() == null) {
+                    player.getPartner().setTileX(player.getTileX() - 1);
+                    player.getPartner().setTileY(player.getTileY());
+                }
+                else if ( !startRoom.getData().getTiles()[player.getTileX()][player.getTileY()+1].getIsSolid()  &&
+                        startRoom.getData().getTiles()[player.getTileX()][player.getTileY()+1].getActor() == null) {
+                    player.getPartner().setTileX(player.getTileX());
+                    player.getPartner().setTileY(player.getTileY()+1);
+                }
+                else{
+                    player.getPartner().setTileX(player.getTileX());
+                    player.getPartner().setTileY(player.getTileY()-1);
+                }
+
                 startRoom.getData().getTiles()[player.getPartner().getTileX()][player.getPartner().getTileY()].setActor(player.getPartner());
             }
         }
@@ -202,14 +225,89 @@ public class TreeMapGenerator {
        setKeysAndLockedDoors(path,distance/2);
 
        try {
-           spawnEnemies(allRooms.size() - allRooms.size() / 2 + rand.nextInt(allRooms.size()));
+          spawnEnemies(allRooms.size() - allRooms.size() / 2 + rand.nextInt(allRooms.size()));
+       //    spawnItems(1 + rand.nextInt(allRooms.size()/2));
        }catch (Exception e){
            errorText += e.getLocalizedMessage();
        }
 
+       HeldWeapon heldWeapon = new HeldWeapon(player.getPlayerStats(),new GunWeapon(context));
+       FloorItem floorItem = new FloorItem(context,startRoom.getData().getTiles(),heldWeapon,player,player.getTileX(),player.getTileY() + 1);
+       startRoom.getData().getTiles()[player.getTileX()][player.getTileY() + 1].setItem(floorItem);
+       actors.add(floorItem);
+
        makeEntrances(path);
 
        orientXY();
+
+
+    }
+
+    private void spawnItems(int number){
+        int count = 0;
+        int roomIndex;
+        int spawnPointIndex;
+        boolean checkedRooms[] = new boolean[allRooms.size()];
+        for (int i = 0; i < checkedRooms.length; i++){
+            checkedRooms[i] = false;
+        }
+        boolean checkedPositions[];
+
+        while(count < number){
+            try{
+                roomIndex = getRandomRoomIndex(checkedRooms);
+
+
+                checkedPositions = new boolean[allRooms.elementAt(roomIndex).getData().getItemSpawnPoints().length];
+                for (int i = 0; i < checkedPositions.length; i++){
+                    checkedPositions[i] = false;
+                }
+
+                spawnPointIndex = rand.nextInt(allRooms.elementAt(roomIndex).getData().getItemSpawnPoints().length);
+                checkedPositions[spawnPointIndex] = true;
+            }catch (Exception e){
+                return;
+            }
+            while(allRooms.elementAt(roomIndex).getData().getItemSpawnPoints()[spawnPointIndex].getItem() != null){
+
+                for(int i = 0; i < checkedPositions.length;i++){
+
+                    if(!checkedPositions[i]){
+                        break;
+                    }
+
+                    if(i == checkedPositions.length-1){
+                        checkedRooms[roomIndex] = true;
+                        roomIndex = getRandomRoomIndex(checkedRooms);
+                        checkedPositions = new boolean[allRooms.elementAt(roomIndex).getData().getItemSpawnPoints().length];
+                        for (int j = 0; j < checkedPositions.length; j++){
+                            checkedPositions[j] = false;
+                        }
+
+                        spawnPointIndex = rand.nextInt(allRooms.elementAt(roomIndex).getData().getItemSpawnPoints().length);
+                        spawnPointIndex--;
+                    }
+                }
+
+                spawnPointIndex++;
+                if (spawnPointIndex >= allRooms.elementAt(roomIndex).getData().getItemSpawnPoints().length){
+                    spawnPointIndex = 0;
+                }
+                checkedPositions[spawnPointIndex] = true;
+            }
+
+
+
+           FloorItem floorItem = new FloorItem(context,
+                   allRooms.elementAt(roomIndex).getData().getTiles(),
+                   new RecoveryHeartHeldItem(player.getPlayerStats()),
+                   player,
+                    allRooms.elementAt(roomIndex).getData().getItemSpawnPoints()[spawnPointIndex].getX(),
+                    allRooms.elementAt(roomIndex).getData().getItemSpawnPoints()[spawnPointIndex].getY());
+
+            actors.add(floorItem);
+            count++;
+        }
 
 
     }
@@ -250,7 +348,7 @@ public class TreeMapGenerator {
                     if(i == checkedPositions.length-1){
                         checkedRooms[roomIndex] = true;
                         roomIndex = getRandomRoomIndex(checkedRooms);
-                        checkedPositions = new boolean[allRooms.elementAt(roomIndex).getData().getItemSpawnPoints().length];
+                        checkedPositions = new boolean[allRooms.elementAt(roomIndex).getData().getEnemySpawnPoints().length];
                         for (int j = 0; j < checkedPositions.length; j++){
                             checkedPositions[j] = false;
                         }

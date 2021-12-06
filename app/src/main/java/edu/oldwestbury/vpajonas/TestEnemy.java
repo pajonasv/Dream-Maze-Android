@@ -51,10 +51,15 @@ public class TestEnemy implements Enemy {
     private EnemyInteractMenu enemyInteractMenu;
     private int interactMenuTimer;
     private boolean decInteractMenuTimer;
+    private float reasonPercent;
+
+    private SpriteIndex spriteIndex;
 
     public TestEnemy(Context context, DTile[][] tileSetPassed, Player passedPlayer,int startX, int startY){
         BitmapFactory bitmapFac = new BitmapFactory();
-        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.enemy);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.vintagetv_spritesheet,options);
         tileSet = tileSetPassed;
         player = passedPlayer;
 
@@ -73,7 +78,7 @@ public class TestEnemy implements Enemy {
         soundSet = new int[2];
         soundSet[0] = R.raw.hitsound;
 
-        range = 2;
+        range = 4;
         rangeX = tileX - range;
         rangeY = tileY - range;
         rangeXtwo = tileX + range;
@@ -102,11 +107,16 @@ public class TestEnemy implements Enemy {
 
         behavior = ActTypes.ACT_DONOTHING;
 
-        droppedItem = new FloorItem(context,null,new RecoveryHeartHeldItem(player.getPlayerStats()),player,tileX,tileY);
+        droppedItem = new FloorItem(context,null,1,player,tileX,tileY);
         target = null;
 
         interactMenuTimer = 90;
         decInteractMenuTimer = false;
+
+        reasonPercent = 100f;
+
+
+        spriteIndex = SpriteIndex.IDLE_FRONT;
     }
 
     @Override
@@ -135,10 +145,8 @@ public class TestEnemy implements Enemy {
                     rangeYtwo--;
                 }
 
-
-
-                if (!busy) {
-                   refreshShape();
+                if(!busy) {
+                    refreshShape();
                 }
                 if(decInteractMenuTimer){
                     interactMenuTimer--;
@@ -228,11 +236,11 @@ public class TestEnemy implements Enemy {
             } else if (behavior == ActTypes.ACT_ATTACK) { //attacking player
                 try {
                     if(target == player) {
-                        player.getPlayerStats().setHP(player.getPlayerStats().getHP() - stats.getATK());
+                        player.getPlayerStats().setHP(player.getPlayerStats().getHP() - stats.getATK() + player.getPlayerStats().getDEF());
                         tickText += "-Enemy did " + stats.getATK() + " damage to the player!";
                     }
                     else if(target instanceof Partner){
-                        ((Partner)target).getStats().setHP(((Partner)target).getStats().getHP() - stats.getATK());
+                        ((Partner)target).getStats().setHP(((Partner)target).getStats().getHP() - stats.getATK() + ((Partner)target).getStats().getDEF());
                         tickText += "-Enemy did " + stats.getATK() + " damage to the partner!";
                     }
                 }catch (Exception e){
@@ -283,12 +291,14 @@ public class TestEnemy implements Enemy {
     public void onTouch(View view, MotionEvent event){
 
         if(touchable) {
-            if (event.getX() >= shape.left &&
-                    event.getX() <= shape.right &&
-                    event.getY() >= shape.top &&
-                    event.getY() <= shape.bottom) {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                if (event.getX() >= shape.left &&
+                        event.getX() <= shape.right &&
+                        event.getY() >= shape.top &&
+                        event.getY() <= shape.bottom) {
 
-                decInteractMenuTimer = true;
+                    decInteractMenuTimer = true;
+                }
             }
 
 
@@ -436,11 +446,35 @@ public class TestEnemy implements Enemy {
         enemyInteractMenu = enemyInteractMenuPassed;
     }
 
-    private void refreshShape(){
+    @Override
+    public void refreshShape(){
         shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles)* screenXYPosFin.tileW * screenXYPosFin.modifierW,
                 (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles)* screenXYPosFin.tileH * screenXYPosFin.modifierH,
                 (tileX+1+ screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles)* screenXYPosFin.tileW * screenXYPosFin.modifierW,
                 (tileY+1+ screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles)* screenXYPosFin.tileH * screenXYPosFin.modifierH);
+    }
+
+    @Override
+    public Rect getSpritePart() {
+        if(spriteIndex == SpriteIndex.IDLE_FRONT){
+            return new Rect(0,0,25,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_LEFT){
+            return new Rect(25,0,50,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_BACK){
+            return new Rect(50,0,75,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_RIGHT){
+            return new Rect(75,0,100,25);
+
+        }
+
+
+        return new Rect(0,0,150,150);
     }
 
     private boolean scanRangeForPlayer(){
@@ -482,18 +516,24 @@ public class TestEnemy implements Enemy {
                 ySpd = 0;
                 behavior = ActTypes.ACT_ATTACK;
                 target = tileSet[tileX + 1][tileY].getActor();
+
+                spriteIndex = SpriteIndex.IDLE_RIGHT;
                 return true;
             } else if ((tileSet[tileX - 1][tileY].getActor() == player || tileSet[tileX - 1][tileY].getActor() instanceof Partner) && inRange) {
                 xSpd = -1;
                 ySpd = 0;
                 behavior = ActTypes.ACT_ATTACK;
                 target = tileSet[tileX - 1][tileY].getActor();
+
+                spriteIndex = SpriteIndex.IDLE_LEFT;
                 return true;
             } else if ((tileSet[tileX][tileY + 1].getActor() == player || tileSet[tileX][tileY + 1].getActor() instanceof Partner) && inRange) {
                 xSpd = 0;
                 ySpd = 1;
                 behavior = ActTypes.ACT_ATTACK;
                 target = tileSet[tileX][tileY + 1].getActor();
+
+                spriteIndex = SpriteIndex.IDLE_FRONT;
                 return true;
             } else if ((tileSet[tileX][tileY - 1].getActor() == player || tileSet[tileX][tileY - 1].getActor() instanceof Partner) && inRange) {
 
@@ -501,6 +541,8 @@ public class TestEnemy implements Enemy {
                 ySpd = -1;
                 behavior = ActTypes.ACT_ATTACK;
                 target = tileSet[tileX][tileY - 1].getActor();
+
+                spriteIndex = SpriteIndex.IDLE_BACK;
                 return true;
 
             }
@@ -515,6 +557,11 @@ public class TestEnemy implements Enemy {
         willBecomePartner = toSet;
     }
 
+    @Override
+    public float getReasonPercent() {
+        return reasonPercent;
+    }
+
 
     private boolean canMove(){
         int xDif = player.getTileX() - tileX;
@@ -525,9 +572,13 @@ public class TestEnemy implements Enemy {
                 xSpd = 1;
                 ySpd = 0;
 
+                spriteIndex = SpriteIndex.IDLE_RIGHT;
+
             } else {
                 xSpd = -1;
                 ySpd = 0;
+
+                spriteIndex = SpriteIndex.IDLE_LEFT;
 
             }
             if ((tileSet[tileX + xSpd][tileY + ySpd].getActor() != null || tileSet[tileX + xSpd][tileY + ySpd].getIsSolid()) && yDif != 0) {
@@ -535,9 +586,15 @@ public class TestEnemy implements Enemy {
                     xSpd = 0;
                     ySpd = 1;
 
+
+                    spriteIndex = SpriteIndex.IDLE_FRONT;
+
                 } else {
                     xSpd = 0;
                     ySpd = -1;
+
+
+                    spriteIndex = SpriteIndex.IDLE_BACK;
                 }
             }
         } else if (Math.abs(xDif) < Math.abs(yDif)) {
@@ -579,10 +636,10 @@ public class TestEnemy implements Enemy {
         private Vector<String> messages;
 
         public Stats(){
-            maxHP = 5;
+            maxHP = 60;
             HP = maxHP;
-            ATK = 1;
-            DEF = 1;
+            ATK = 50;
+            DEF = 20;
 
             messages = new Vector<>();
             messages.add("Hey umm");

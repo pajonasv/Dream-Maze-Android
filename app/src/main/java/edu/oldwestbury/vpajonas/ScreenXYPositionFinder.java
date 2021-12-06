@@ -32,7 +32,7 @@ public class ScreenXYPositionFinder {
 
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
-    public ScreenXYPositionFinder(Context context,int numOfXTiles, int numOfYTiles){
+    public ScreenXYPositionFinder(Context context,int tileWPassed, int tileHPassed){
         DisplayMetrics displayMetrics = new DisplayMetrics();
 
         ((Activity)context).getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
@@ -40,9 +40,9 @@ public class ScreenXYPositionFinder {
         screenW = displayMetrics.widthPixels;
         screenH = displayMetrics.heightPixels;
 
-        tileW = screenW / numOfXTiles;
+        tileW = tileWPassed;
 
-        tileH = screenH / numOfYTiles;
+        tileH = tileHPassed;
 
         modifierW =  screenW / 1080; //my screen width
         modifierH = screenH / 2160; //my screen height
@@ -68,8 +68,8 @@ public class ScreenXYPositionFinder {
 
     public void setViewPortXY(Player player){
         //the x and y where the viewport starts
-        viewPortX = player.getTileX()*tileW - viewportWtiles/2*(tileW);
-        viewPortY = player.getTileY()*tileH - viewportHtiles/2*(tileH);
+        viewPortX = player.getTileX()*tileW - (viewportWtiles/2*(tileW));
+        viewPortY = player.getTileY()*tileH - (viewportHtiles/2*(tileH));
     }
 
 

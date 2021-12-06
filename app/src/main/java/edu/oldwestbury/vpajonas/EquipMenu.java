@@ -10,7 +10,7 @@ import android.view.View;
 
 import java.util.Vector;
 
-public class InventoryMenu implements HUDelement {
+public class EquipMenu implements HUDelement {
     private Bitmap bmp;
     private HUDelement[] subHUDelements;
     private Rect shape;
@@ -20,14 +20,13 @@ public class InventoryMenu implements HUDelement {
 
     private Vector<HUDText> texts;
 
-    private ActionMenu actionMenu;
 
     private PlayerStats playerStats;
 
     private int delay;
     private Paint paint;
 
-    public InventoryMenu(Context context, ActionMenu actionMenuPassed,PlayerStats playerStatsPassed, int xPos, int yPos, int width, int height){
+    public EquipMenu(Context context, PlayerStats playerStatsPassed, int xPos, int yPos, int width, int height){
         BitmapFactory bitmapFac = new BitmapFactory();
         bmp = bitmapFac.decodeResource(context.getResources(),R.drawable.textbox);
 
@@ -41,16 +40,13 @@ public class InventoryMenu implements HUDelement {
         playerStats = playerStatsPassed;
 
         texts = new Vector<>();
-        texts.setSize(playerStats.getItems().length);
         Paint paint = new Paint();
         paint.setTextSize(80f);
         paint.setARGB(255,255,255,255);
-        for(int i = 0; i < texts.size();i++) {
-            texts.set(i, new HUDText("", paint, 100, (i+1)*100));
-        }
+        texts.add(new HUDText("Weapon - ", paint, 100, 100));
+        texts.add(new HUDText(playerStats.getCurrentWeapon().getName(), paint, 500, 100));
+        texts.add(new HUDText("ATK - "+playerStats.getCurrentWeapon().getATK(), paint,500,300));
 
-        actionMenu = actionMenuPassed;
-        actionMenu.setInventoryMenu(this);
 
         delay = -1;
     }
@@ -61,9 +57,6 @@ public class InventoryMenu implements HUDelement {
         if(isActive){
             isVisible = true;
         }
-        actionMenu.update();
-
-
 
 
         if(delay > -1){
@@ -79,26 +72,19 @@ public class InventoryMenu implements HUDelement {
     public void onTouch(View v, MotionEvent event) {
         if(isActive) {
             try {
-                int current = 0;
-
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    while (playerStats.getItems()[current] != null) {
-                        if (event.getX() <= texts.elementAt(current).shape.right &&
-                                event.getX() >= texts.elementAt(current).shape.left &&
-                                event.getY() <= texts.elementAt(current).shape.bottom &&
-                                event.getY() >= texts.elementAt(current).shape.top) {
+                    if (event.getX() <= texts.elementAt(1).shape.right &&
+                            event.getX() >= texts.elementAt(1).shape.left &&
+                            event.getY() <= texts.elementAt(1).shape.bottom &&
+                            event.getY() >= texts.elementAt(1).shape.top) {
 
-                            isActive = false;
-                            actionMenu.setHeldItem(current);
-                            actionMenu.setActive(10);
-                            return;
-
-
-                        }
-
-                        current++;
+                            playerStats.nextWeapon();
+                            texts.elementAt(1).text = playerStats.getCurrentWeapon().getName();
+                            texts.elementAt(2).text = "ATK - " + playerStats.getCurrentWeapon().getATK();
                     }
-                    if(event.getX() > 900 && event.getY() > 1500){
+
+
+                        if(event.getX() > 900 && event.getY() > 1500){
                         setActive(-1);
                     }
                 }
@@ -141,17 +127,9 @@ public class InventoryMenu implements HUDelement {
     public void setActive(int delayPassed){
         delay = delayPassed;
         if (delay >= 0){
-            int current = 0;
+            texts.elementAt(1).text = playerStats.getCurrentWeapon().getName();
+            texts.elementAt(2).text = "ATK - " + playerStats.getCurrentWeapon().getATK();
 
-
-            while(playerStats.getItems()[current] != null) {
-                texts.elementAt(current).text = playerStats.getItems()[current].getName();
-
-                current++;
-            }
-            for (int i = current; i < texts.size();i++){
-                texts.elementAt(i).text = "";
-            }
         }
         else{
             isActive = false;
@@ -166,7 +144,6 @@ public class InventoryMenu implements HUDelement {
     public boolean pauseWhenActive(){
         return true;
     }
-
 
 
 

@@ -134,7 +134,7 @@ public class Dungeon {
             if (tickHandler.getTickEnabled()) {
                 if (index == 0 && getCurrentFloor().getActors().elementAt(index) instanceof Player) {
                     if (((Player) current).getPartner() != null) {
-                        if (((Player) current).getPartner().getBehavior() == ActTypes.ACT_MOVE || ((Player) current).getPartner().getBehavior() == ActTypes.ACT_KEEPMOVING) {
+                        if ((((Player) current).getPartner().getBehavior() == ActTypes.ACT_MOVE || ((Player) current).getPartner().getBehavior() == ActTypes.ACT_KEEPMOVING)) {
                             letPartnerActEarly = true;
                             if (!busy) {
                                 ((Player) current).getPartner().update();
@@ -225,6 +225,7 @@ public class Dungeon {
                     tickHandler.setActorsTouchable(true);
                 }
                 index = 0;
+                letPartnerActEarly = false;
 
             } else {
                 run();
@@ -354,6 +355,7 @@ public class Dungeon {
     }
 
 
+
     private boolean handleAnimationPartner(Actor actor) {
 
         if(actor.getBehavior() == ActTypes.ACT_DONOTHING){
@@ -373,7 +375,7 @@ public class Dungeon {
 
                 if (actor.getShape().top <= (actor.getTileY() + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles - 1) * screenXYPosFin.tileH * screenXYPosFin.modifierH) {
 
-                   return true;
+                    return true;
                 }
             } else if (direction == 2) {
                 actor.getShape().top += speed;
@@ -396,7 +398,7 @@ public class Dungeon {
                 actor.getShape().right += speed;
 
                 if (actor.getShape().left >= (actor.getTileX() + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles + 1) * screenXYPosFin.tileW * screenXYPosFin.modifierW) {
-                     return true;
+                    return true;
                 }
             }
 
@@ -525,24 +527,24 @@ public class Dungeon {
             return;
         }
 
-            ActTypes reaction = reactor.react();
-            tickText += reactor.getTickText();
-            if (reactor.getTickText() != "") {
-                tickText += "^";
-            }
+        ActTypes reaction = reactor.react();
+        tickText += reactor.getTickText();
+        if (reactor.getTickText() != "") {
+            tickText += "^";
+        }
 
-            if(reaction == ActTypes.REACT_DELETEME){
-                getCurrentFloor().getTiles()[reactor.getTileX()][reactor.getTileY()].setActor(null);
+        if(reaction == ActTypes.REACT_DELETEME){
+            getCurrentFloor().getTiles()[reactor.getTileX()][reactor.getTileY()].setActor(null);
 
-                for (int j = 0; j < getCurrentFloor().getActors().size(); j++) {
-                    if(getCurrentFloor().getActors().elementAt(j) == reactor){
+            for (int j = 0; j < getCurrentFloor().getActors().size(); j++) {
+                if(getCurrentFloor().getActors().elementAt(j) == reactor){
 
-                        getCurrentFloor().getActors().remove(j);
-                        break;
-                    }
+                    getCurrentFloor().getActors().remove(j);
+                    break;
                 }
-
             }
+
+        }
         else if(reaction == ActTypes.REACT_DELETEMEDROPITEM){
 
             if(reactor instanceof Enemy){
@@ -565,24 +567,24 @@ public class Dungeon {
             }
 
         }
-            else if(reaction == ActTypes.REACT_DELETEMEACTORS){
-                for (int j = 0; j < getCurrentFloor().getActors().size(); j++) {
-                    if(getCurrentFloor().getActors().elementAt(j) == reactor){
-                        getCurrentFloor().getActors().remove(j);
-                        break;
-                    }
+        else if(reaction == ActTypes.REACT_DELETEMEACTORS){
+            for (int j = 0; j < getCurrentFloor().getActors().size(); j++) {
+                if(getCurrentFloor().getActors().elementAt(j) == reactor){
+                    getCurrentFloor().getActors().remove(j);
+                    break;
                 }
             }
-            else if(reaction == ActTypes.REACT_DELETEITEM){
-                getCurrentFloor().getTiles()[reactor.getTileX()][reactor.getTileY()].setItem(null);
+        }
+        else if(reaction == ActTypes.REACT_DELETEITEM){
+            getCurrentFloor().getTiles()[reactor.getTileX()][reactor.getTileY()].setItem(null);
 
-                for (int j = 0; j < getCurrentFloor().getActors().size(); j++) {
-                    if(getCurrentFloor().getActors().elementAt(j) == reactor){
-                        getCurrentFloor().getActors().remove(j);
-                        break;
-                    }
+            for (int j = 0; j < getCurrentFloor().getActors().size(); j++) {
+                if(getCurrentFloor().getActors().elementAt(j) == reactor){
+                    getCurrentFloor().getActors().remove(j);
+                    break;
                 }
             }
+        }
         else if(reaction == ActTypes.REACT_BECOMEPARTNER){
             getCurrentFloor().getTiles()[reactor.getTileX()][reactor.getTileY()].setActor(getPlayer().getPartner());
 

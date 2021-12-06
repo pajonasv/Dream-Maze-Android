@@ -56,10 +56,7 @@ public class Key implements ObtainableItem {
     @Override
     public void update(){
         try {
-                shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
-                        (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH,
-                        (tileX + 1 + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
-                        (tileY + 1 + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH);
+                refreshShape();
 
         }catch (Exception e){
         errorText += "Key.update() ERROR 1 -" + e.toString();
@@ -182,6 +179,20 @@ public class Key implements ObtainableItem {
     public ActTypes getBehavior(){
         return ActTypes.ACT_DONOTHING;
     }
+
+    @Override
+    public void refreshShape() {
+        shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
+                (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH,
+                (tileX + 1 + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
+                (tileY + 1 + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH);
+    }
+
+    @Override
+    public Rect getSpritePart() {
+        return null;
+    }
+
     @Override
     public int[] getSoundSet(){
         return soundSet;

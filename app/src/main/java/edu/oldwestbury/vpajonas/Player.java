@@ -7,6 +7,8 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.Random;
+
 public class Player implements Actor {
     //for tile positioning
     private int tileX; //where you are
@@ -44,16 +46,23 @@ public class Player implements Actor {
     private Bitmap sprite;
     private DTile[][] tileSet;
     private Partner partner;
-
+    private Random rand;
+    PlayerDoubleTapMenu playerDoubleTapMenu;
     //misc
     private int lastHP;//find a way to get rid of this
+    private int doubleTapTimer;
+    private boolean decDoubleTapTimer;
+    private SpriteIndex spriteIndex;
 
     private Context context;
 
     public Player(Context contextPassed, DTile[][] tileSetPassed,int startX, int startY){
         context = contextPassed;
         BitmapFactory bitmapFac = new BitmapFactory();
-        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.redman);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.player_spritesheet, options);
+
 
         tileSet = tileSetPassed;
         tileX = startX;
@@ -79,7 +88,7 @@ public class Player implements Actor {
 
         partner = null;
 
-        screenXYPosFin = new ScreenXYPositionFinder(context,11,19);
+        screenXYPosFin = new ScreenXYPositionFinder(context,150,150);
         screenXYPosFin.setViewPortXYtiles(this);
         refreshShape();
 
@@ -91,6 +100,12 @@ public class Player implements Actor {
         lastHP = playerStats.getHP();
 
         behavior = ActTypes.ACT_DONOTHING;
+
+        rand = new Random();
+        doubleTapTimer = 30;
+        decDoubleTapTimer = false;
+
+        spriteIndex = SpriteIndex.IDLE_FRONT;
     }
 
     @Override
@@ -101,6 +116,8 @@ public class Player implements Actor {
                 startingTouchX = event.getX();
                 startingTouchY = event.getY();
 
+
+
             }
 
             if (event.getAction() == MotionEvent.ACTION_MOVE) { //still pressing down but difference in xy
@@ -108,15 +125,20 @@ public class Player implements Actor {
                 if (event.getX() + deadzone < startingTouchX) {
                     xSpd = -1;
                     ySpd = 0;
+                    spriteIndex = SpriteIndex.IDLE_LEFT;
                 } else if (event.getX() - deadzone > startingTouchX) {
                     xSpd = 1;
                     ySpd = 0;
+                    spriteIndex = SpriteIndex.IDLE_RIGHT;
                 } else if (event.getY() + deadzone < startingTouchY) {
                     ySpd = -1;
                     xSpd = 0;
+                    spriteIndex = SpriteIndex.IDLE_BACK;
                 } else if (event.getY() - deadzone > startingTouchY) {
                     ySpd = 1;
                     xSpd = 0;
+
+                    spriteIndex = SpriteIndex.IDLE_FRONT;
                 }
 
                 if (xSpd != 0 || ySpd != 0) {
@@ -129,6 +151,18 @@ public class Player implements Actor {
             if (event.getAction() == MotionEvent.ACTION_UP) { //player takes finger off
 
                 if (!busy) {
+                    if (    event.getX() >= shape.left &&
+                            event.getX() <= shape.right &&
+                            event.getY() >= shape.top &&
+                            event.getY() <= shape.bottom) {
+                        if (doubleTapTimer == 30) {
+                            decDoubleTapTimer = true;
+                        } else {
+                            playerDoubleTapMenu.setActive(10);
+                        }
+                    }
+
+
                     if (tileX + xSpd > -1 && tileY + ySpd > -1 && tileX + xSpd < tileSet.length && tileY + ySpd < tileSet[0].length) { //making sure in bounds
                         if (tileSet[tileX + xSpd][tileY + ySpd] != null) { //nullptr exception prevention
                             if (!tileSet[tileX + xSpd][tileY + ySpd].getIsSolid()) {
@@ -163,6 +197,13 @@ public class Player implements Actor {
 
         try {
 
+            if(decDoubleTapTimer){
+                doubleTapTimer--;
+                if(doubleTapTimer < 0){
+                    doubleTapTimer = 30;
+                    decDoubleTapTimer = false;
+                }
+            }
 
             if (!busy) {
                 if (timer >= 15) {
@@ -267,10 +308,21 @@ public class Player implements Actor {
                 return target;
 
             } else if(behavior == ActTypes.ACT_REASON){
-                makePartnerFromEnemy((Enemy)target);
-                ((Enemy)target).getStats().setHP(0);
-                ((Enemy)target).setWillBecomePartner(true);
-                return target;
+                float HPdifference = (playerStats.getHP()/playerStats.getMaxHP()) - (((Enemy)target).getStats().getHP()/((Enemy)target).getStats().getMaxHP());
+                if( HPdifference <= 1){
+                    HPdifference = 1;
+                }
+                if( rand.nextInt(100) <= (int)HPdifference*((Enemy)target).getReasonPercent()) {
+                    makePartnerFromEnemy((Enemy) target);
+                    ((Enemy) target).getStats().setHP(0);
+                    ((Enemy) target).setWillBecomePartner(true);
+
+                    tickText = "Reasoned with the enemy!";
+                    return target;
+                }
+                else{
+                    tickText = "Failed to reason with the enemy";
+                }
 
             }
         }catch (Exception e){
@@ -365,18 +417,26 @@ public class Player implements Actor {
         if (target.getTileX() > tileX){
             xSpd = 1;
             ySpd = 0;
+
+            spriteIndex = SpriteIndex.IDLE_RIGHT;
         }
         else if(target.getTileX() < tileX){
             xSpd = -1;
             ySpd = 0;
+
+            spriteIndex = SpriteIndex.IDLE_LEFT;
         }
         else if (target.getTileY() > tileY){
             xSpd = 0;
             ySpd = 1;
+
+            spriteIndex = SpriteIndex.IDLE_FRONT;
         }
         else {
             xSpd = 0;
             ySpd = -1;
+
+            spriteIndex = SpriteIndex.IDLE_BACK;
         }
 
         tickEnabled = true;
@@ -384,6 +444,27 @@ public class Player implements Actor {
     }
 
     public void talkTo(Actor actor, ActTypes actTypes){
+
+        if(actor.getTileX() > tileX){
+
+            spriteIndex = SpriteIndex.IDLE_RIGHT;
+        }
+        else if(actor.getTileX() < tileX){
+
+            spriteIndex = SpriteIndex.IDLE_LEFT;
+        }
+        else if(actor.getTileY() > tileY){
+
+            spriteIndex = SpriteIndex.IDLE_BACK;
+        }
+        else if(actor.getTileY() < tileY){
+
+            spriteIndex = SpriteIndex.IDLE_FRONT;
+        }
+
+
+
+
 
         target = actor;
         behavior = actTypes;
@@ -456,6 +537,7 @@ public class Player implements Actor {
     }
     public Partner getPartner(){
         return partner;
+
     }
 
     public int getXSpd(){
@@ -465,6 +547,7 @@ public class Player implements Actor {
         return  ySpd;
     }
 
+    @Override
     public void refreshShape(){
         shape = new Rect(((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles)* screenXYPosFin.tileW * screenXYPosFin.modifierW),
                 ((tileY + screenXYPosFin.viewportYOffsetTiles  - screenXYPosFin.viewPortYtiles)* screenXYPosFin.tileH * screenXYPosFin.modifierH) ,
@@ -473,15 +556,43 @@ public class Player implements Actor {
 
     }
 
+    @Override
+    public Rect getSpritePart() {
+        if(spriteIndex == SpriteIndex.IDLE_FRONT){
+            return new Rect(0,0,25,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_LEFT){
+            return new Rect(25,0,50,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_BACK){
+            return new Rect(50,0,75,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_RIGHT){
+            return new Rect(75,0,100,25);
+
+        }
+
+
+        return new Rect(0,0,150,150);
+    }
+
     public void makePartnerFromEnemy(Enemy enemy){
         partner = new Partner(context,tileSet,this,this);
         partner.setSprite(enemy.getSprite());
         partner.setTileX(enemy.getTileX());
         partner.setTileY(enemy.getTileY());
+        tileSet[enemy.getTileX()][enemy.getTileY()].setActor(partner);
         partner.getStats().setATK(enemy.getStats().getATK());
         partner.getStats().setDEF(enemy.getStats().getDEF());
         partner.getStats().setMaxHP(enemy.getStats().getMaxHP());
         partner.getStats().setHP(partner.getStats().getMaxHP());
 
     }
+    public void setPlayerDoubleTapMenu(PlayerDoubleTapMenu playerDoubleTapMenuPassed){
+        playerDoubleTapMenu = playerDoubleTapMenuPassed;
+    }
+
 }

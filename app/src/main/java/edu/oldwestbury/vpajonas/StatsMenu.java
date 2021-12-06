@@ -10,7 +10,8 @@ import android.view.View;
 
 import java.util.Vector;
 
-public class InventoryMenu implements HUDelement {
+public class StatsMenu implements HUDelement {
+
     private Bitmap bmp;
     private HUDelement[] subHUDelements;
     private Rect shape;
@@ -20,14 +21,16 @@ public class InventoryMenu implements HUDelement {
 
     private Vector<HUDText> texts;
 
-    private ActionMenu actionMenu;
+
+    private Player player;
 
     private PlayerStats playerStats;
 
     private int delay;
     private Paint paint;
+    private short tab;
 
-    public InventoryMenu(Context context, ActionMenu actionMenuPassed,PlayerStats playerStatsPassed, int xPos, int yPos, int width, int height){
+    public StatsMenu(Context context, Player playerPassed, int xPos, int yPos, int width, int height){
         BitmapFactory bitmapFac = new BitmapFactory();
         bmp = bitmapFac.decodeResource(context.getResources(),R.drawable.textbox);
 
@@ -38,19 +41,21 @@ public class InventoryMenu implements HUDelement {
 
         subHUDelements = new HUDelement[0];
 
-        playerStats = playerStatsPassed;
+        player = playerPassed;
+
+        playerStats = player.getPlayerStats();
+
+        tab = 0;
 
         texts = new Vector<>();
-        texts.setSize(playerStats.getItems().length);
         Paint paint = new Paint();
         paint.setTextSize(80f);
         paint.setARGB(255,255,255,255);
-        for(int i = 0; i < texts.size();i++) {
-            texts.set(i, new HUDText("", paint, 100, (i+1)*100));
-        }
 
-        actionMenu = actionMenuPassed;
-        actionMenu.setInventoryMenu(this);
+        texts.add(new HUDText("",paint,20,100));
+        texts.add(new HUDText("",paint,20,200));
+        texts.add(new HUDText("",paint,20,300));
+        texts.add(new HUDText("",paint,20,400));
 
         delay = -1;
     }
@@ -61,7 +66,6 @@ public class InventoryMenu implements HUDelement {
         if(isActive){
             isVisible = true;
         }
-        actionMenu.update();
 
 
 
@@ -79,27 +83,21 @@ public class InventoryMenu implements HUDelement {
     public void onTouch(View v, MotionEvent event) {
         if(isActive) {
             try {
-                int current = 0;
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    while (playerStats.getItems()[current] != null) {
-                        if (event.getX() <= texts.elementAt(current).shape.right &&
-                                event.getX() >= texts.elementAt(current).shape.left &&
-                                event.getY() <= texts.elementAt(current).shape.bottom &&
-                                event.getY() >= texts.elementAt(current).shape.top) {
 
-                            isActive = false;
-                            actionMenu.setHeldItem(current);
-                            actionMenu.setActive(10);
-                            return;
-
-
-                        }
-
-                        current++;
-                    }
                     if(event.getX() > 900 && event.getY() > 1500){
                         setActive(-1);
+                    }
+                    else{
+                        if(tab == 0 && player.getPartner() != null){
+                            tab = 1;
+                            setTextBasedOnTab();
+                        }
+                        else{
+                            tab = 0;
+                            setTextBasedOnTab();
+                        }
                     }
                 }
             }catch (Exception e){
@@ -141,17 +139,9 @@ public class InventoryMenu implements HUDelement {
     public void setActive(int delayPassed){
         delay = delayPassed;
         if (delay >= 0){
-            int current = 0;
+            tab = 0;
+            setTextBasedOnTab();
 
-
-            while(playerStats.getItems()[current] != null) {
-                texts.elementAt(current).text = playerStats.getItems()[current].getName();
-
-                current++;
-            }
-            for (int i = current; i < texts.size();i++){
-                texts.elementAt(i).text = "";
-            }
         }
         else{
             isActive = false;
@@ -165,6 +155,24 @@ public class InventoryMenu implements HUDelement {
     @Override
     public boolean pauseWhenActive(){
         return true;
+    }
+
+    private void setTextBasedOnTab(){
+        if(tab == 0){
+            texts.elementAt(0).text = "Player";
+            texts.elementAt(1).text = "HP - " + playerStats.getHP() + "/" + playerStats.getMaxHP();
+            texts.elementAt(2).text = "ATK - " + playerStats.getATK();
+            texts.elementAt(3).text = "DEF - " + playerStats.getDEF();
+        }
+        else{
+            texts.elementAt(0).text = "Partner";
+            texts.elementAt(1).text = "HP - " + player.getPartner().getStats().getHP() + "/" + player.getPartner().getStats().getMaxHP();
+            texts.elementAt(2).text = "ATK - " + player.getPartner().getStats().getATK();
+            texts.elementAt(3).text = "DEF - " + player.getPartner().getStats().getDEF();
+
+
+        }
+
     }
 
 

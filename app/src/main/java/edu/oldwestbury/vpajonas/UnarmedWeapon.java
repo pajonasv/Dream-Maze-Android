@@ -14,7 +14,7 @@ public class UnarmedWeapon implements Weapon {
         BitmapFactory bitmapFac = new BitmapFactory();
         sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.unarmed_icon);
         name = "Unarmed";
-        ATK = 2;
+        ATK = 10;
         range = 1;
     }
 

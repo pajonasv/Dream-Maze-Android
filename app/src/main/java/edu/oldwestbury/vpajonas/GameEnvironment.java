@@ -32,16 +32,18 @@ public class GameEnvironment extends TimerTask{
 
         NarrarationBox narrarationBox = new NarrarationBox(context,0,screenXYPosFin.screenH-480,screenXYPosFin.screenW,480);
         HUDelements.add(narrarationBox);
-        WeaponBox weaponBox = new WeaponBox(context,dungeon.getPlayer().getPlayerStats(),screenXYPosFin.screenW-170,20,150,150);
-        HUDelements.add(weaponBox);
+
 
         ActionMenu actionMenu = new ActionMenu(context,dungeon.getPlayer().getPlayerStats(),0,0,screenXYPosFin.screenW,screenXYPosFin.screenH);
         InventoryMenu inventory = new InventoryMenu(context,actionMenu,dungeon.getPlayer().getPlayerStats(),0,0,screenXYPosFin.screenW,screenXYPosFin.screenH);
         HUDelements.add(inventory);
         HUDelements.add(actionMenu);
 
-        InventoryIcon inventoryIcon = new InventoryIcon(context,inventory,dungeon.getTickHandler(),screenXYPosFin.screenW-170,screenXYPosFin.screenH-650,150,150);
-        HUDelements.add(inventoryIcon);
+        EquipMenu equipMenu = new EquipMenu(context,dungeon.getPlayer().getPlayerStats(),0,0,screenXYPosFin.screenW,screenXYPosFin.screenH);
+        HUDelements.add(equipMenu);
+
+        StatsMenu statsMenu = new StatsMenu(context,dungeon.getPlayer(),0,0,screenXYPosFin.screenW,screenXYPosFin.screenH);
+        HUDelements.add(statsMenu);
 
         FloorIntroText floorIntroText = new FloorIntroText(context, screenXYPosFin, dungeon.getCurrentFloor());
         HUDelements.add(floorIntroText);
@@ -51,6 +53,11 @@ public class GameEnvironment extends TimerTask{
 
         EnemyInteractMenu enemyInteractMenu = new EnemyInteractMenu(context, dialogueBox,dungeon.getPlayer(),0,0,screenXYPosFin.screenW,screenXYPosFin.screenH);
         HUDelements.add(enemyInteractMenu);
+
+
+        PlayerDoubleTapMenu playerDoubleTapMenu = new PlayerDoubleTapMenu(context,dungeon.getPlayer(),inventory,equipMenu,statsMenu);
+        dungeon.getPlayer().setPlayerDoubleTapMenu(playerDoubleTapMenu);
+        HUDelements.add(playerDoubleTapMenu);
 
         for(int i = 0; i < HUDelements.size();i++){
             HUDelement current = HUDelements.elementAt(i);
@@ -86,6 +93,7 @@ public class GameEnvironment extends TimerTask{
 
     @Override
     public void run() {
+
 
         for(int i = 0; i < HUDelements.size();i++){
             if(HUDelements.elementAt(i).getActive() && HUDelements.elementAt(i).pauseWhenActive()){

@@ -1,6 +1,7 @@
 package edu.oldwestbury.vpajonas;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 
 public interface DTile {
 
@@ -15,5 +16,7 @@ public interface DTile {
 
     public FloorItem getItem();
     public void setItem(FloorItem toSet);
+    public Rect getShape();
+    public void refreshShape(ScreenXYPositionFinder screenXYPositionFinder);
 
 }

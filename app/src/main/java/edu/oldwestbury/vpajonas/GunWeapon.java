@@ -12,9 +12,11 @@ public class GunWeapon implements  Weapon {
     public GunWeapon(Context context){
 
         BitmapFactory bitmapFac = new BitmapFactory();
-        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.gun_icon);
-        name = "Unarmed";
-        ATK = 1;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        sprite = bitmapFac.decodeResource(context.getResources(),R.drawable.item_spritesheet,options);
+        name = "Gun";
+        ATK = 0;
         range = 2;
     }
 

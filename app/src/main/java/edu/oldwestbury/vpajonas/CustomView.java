@@ -46,6 +46,11 @@ public class CustomView extends View {
     private NarrarationBox debugDisplay;
     private NarrarationBox playerHUD;
 
+    private Paint textColor;
+    private final int maxChars = 57;
+    private int textIndex;
+    private int textYOffset;
+
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     public CustomView(Context context, GameEnvironment passedGameEnvironment){
@@ -95,11 +100,17 @@ public class CustomView extends View {
 
         playerHUD = new NarrarationBox(context,10,10,screenW-20,280);
 
+        textColor = new Paint();
+        textColor.setTextSize(40f);
+        textColor.setARGB(255,0,255,0);
+
+
     }
 
     @SuppressLint("DrawAllocation")
     @Override
     protected void onDraw(Canvas canvas){
+
         Floor currentFloor = gameEnvironment.getDungeon().getCurrentFloor();
 
         viewPortX = screenXYPositionFinder.viewPortXtiles;
@@ -110,38 +121,49 @@ public class CustomView extends View {
         //black background
         canvas.drawColor(Color.BLACK);
 
+
+
+
+
         //TILES
-        for(int i = viewPortX -1; i < viewPortX + screenXYPositionFinder.viewportWtiles +1; i++){
-            if (i >= 0 && i < currentFloor.getTiles().length) { //if within floor bounds
+        try {
+            for (int i = viewPortX - 1; i < viewPortX + screenXYPositionFinder.viewportWtiles + 1; i++) {
+                if (i >= 0 && i < currentFloor.getTiles().length) { //if within floor bounds
 
                     for (int j = viewPortY - 1; j < viewPortY + screenXYPositionFinder.viewportHtiles + 1; j++) {
-                        try {
-                            if (j >= 0 && j < currentFloor.getTiles()[i].length) { //if within floor bounds
 
-                                if (currentFloor.getTiles()[i][j] != null) { //nullptr exception prevention
-                                    try {
-                                        canvas.drawBitmap(currentFloor.getTiles()[i][j].getSprite(),
-                                                null,
-                                                new Rect((int) (((i + viewportXOffset) * screenXYPositionFinder.tileW * modifierW) - screenXYPositionFinder.viewPortX),
-                                                        (int) (((j + viewportYOffset) * screenXYPositionFinder.tileH * modifierH) - screenXYPositionFinder.viewPortY),
-                                                        (int) (((i + 1 + viewportXOffset) * screenXYPositionFinder.tileW * modifierW) - screenXYPositionFinder.viewPortX),
-                                                        (int) (((j + 1 + viewportYOffset) * screenXYPositionFinder.tileH * modifierH) - screenXYPositionFinder.viewPortY)),
-                                                null);
-                                    } catch (Exception e) {
-                                        errorText += "TILE DRAWING ERROR 2 - Error at tile [" + i + "][" + j + "]: " + e.getLocalizedMessage() + "^";
-                                    }
+                        if (j >= 0 && j < currentFloor.getTiles()[i].length) { //if within floor bounds
+
+                            if (currentFloor.getTiles()[i][j] != null) { //nullptr exception prevention
+                                try {
 
 
+
+
+                                    currentFloor.getTiles()[i][j].refreshShape(screenXYPositionFinder);
+
+                                    canvas.drawBitmap(currentFloor.getTiles()[i][j].getSprite(),
+                                            null,
+                                            currentFloor.getTiles()[i][j].getShape(),
+                                            null);
+                                } catch (Exception e) {
+                                    errorText += "TILE DRAWING ERROR 2 - Error at tile [" + i + "][" + j + "]: " + e.getLocalizedMessage() + "^";
                                 }
-                            }
-                        }catch (Exception e){
-                            errorText += "TILE DRAWING ERROR 1 - Error at tile [" + i + "][" + j + "]: " + e.getLocalizedMessage() + currentFloor.getTiles()[i][j].getActor() + "^";
 
+
+                            }
                         }
+
                     }
 
+                }
             }
+        }catch (Exception e){
+            errorText += "TILE DRAWING ERROR 1: " + e.getLocalizedMessage() + "^";
+
         }
+
+
 
         //ACTORS AND ITEMS
         for(int i = 0; i < viewportW - viewportXOffset; i++){
@@ -160,7 +182,7 @@ public class CustomView extends View {
 
                                                 canvas.drawBitmap(
                                                         currentFloor.getTiles()[viewPortX + i][viewPortY + j].getItem().getSprite(),
-                                                        null,
+                                                        currentFloor.getTiles()[viewPortX + i][viewPortY + j].getItem().getSpritePart(),
                                                         currentFloor.getTiles()[viewPortX + i][viewPortY + j].getItem().getShape(),
                                                         null);
 
@@ -175,12 +197,14 @@ public class CustomView extends View {
                                             if (currentFloor.getTiles()[viewPortX + i][viewPortY + j].getActor() != null) {
                                                 canvas.drawBitmap(
                                                         currentFloor.getTiles()[viewPortX + i][viewPortY + j].getActor().getSprite(),
-                                                        null,
+                                                        currentFloor.getTiles()[viewPortX + i][viewPortY + j].getActor().getSpritePart(),
 
                                                         currentFloor.getTiles()[viewPortX + i][viewPortY + j].getActor().getShape(),
                                                         null);
 
                                             }
+
+
                                         } catch (Exception e) {
                                             errorText += "ACTOR DRAWING ERROR 1 - Error at tile [" + i + "][" + j + "]: " + e.getLocalizedMessage() + "^";
                                         }
@@ -200,15 +224,12 @@ public class CustomView extends View {
             }
         }
 
-        Paint textColor = new Paint();
-        textColor.setTextSize(40f);
-        textColor.setARGB(255,0,255,0);
+
+
 
 
         //HUD
-        int maxChars;
-        int textIndex;
-        int textYOffset;
+
         try {
 
             for (int i = 0; i < gameEnvironment.getHUDelements().size(); i++) {
@@ -237,7 +258,7 @@ public class CustomView extends View {
 
 
                     if (gameEnvironment.getHUDelements().elementAt(i) instanceof NarrarationBox) {
-                        maxChars = 57;
+
                         textIndex = 0;
                         textYOffset = 0;
 
@@ -264,7 +285,6 @@ public class CustomView extends View {
 
 
 
-        maxChars = 57;
         textIndex = 0;
         textYOffset = 0;
         playerHUD.setText( "HP - " + tempPlayStats.getHP() + "/" + tempPlayStats.getMaxHP() + "     Money - " + tempPlayStats.getMoney()
@@ -284,22 +304,28 @@ public class CustomView extends View {
 
 
 
-         maxChars = 57;
          textIndex = 0;
          textYOffset = 0;
-        debugDisplay.setText(errorText);
-        while(textIndex < debugDisplay.getText().length()) {
+         if(errorText != "") {
+             debugDisplay.setText(errorText);
+             while (textIndex < debugDisplay.getText().length()) {
 
-            String partitionedText = debugDisplay.partitionText(textIndex, maxChars);
-            canvas.drawText(partitionedText, debugDisplay.getShape().left + 15, debugDisplay.getShape().top + 30 + textYOffset, textColor);
-            textIndex += partitionedText.length();
-            if (partitionedText.length() < maxChars) {
-                textIndex++;
-            }
-            textYOffset += 40;
-        }
+                 String partitionedText = debugDisplay.partitionText(textIndex, maxChars);
+                 canvas.drawText(partitionedText, debugDisplay.getShape().left + 15, debugDisplay.getShape().top + 30 + textYOffset, textColor);
+                 textIndex += partitionedText.length();
+                 if (partitionedText.length() < maxChars) {
+                     textIndex++;
+                 }
+                 textYOffset += 40;
+             }
+
+         }
+
         //DEBUG_TEXT
-        canvas.drawText(debugText,  10,100,textColor);
+        canvas.drawText(debugText, 10, 100, textColor);
+
+
+
 
 
 

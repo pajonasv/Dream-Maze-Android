@@ -19,17 +19,16 @@ public class PlayerStats implements Statsheet {
 
     public PlayerStats(Context context, Player passedPlayer){
         player = passedPlayer;
-        maxHP = 50;
+        maxHP = 10000;
         HP = maxHP;
-        ATK = 1;
-        DEF = 1;
+        ATK = 40;
+        DEF = 10;
 
 
         keys = 0;
         money = 0;
         weapons = new Vector<>();
         weapons.add(new UnarmedWeapon(context));
-        weapons.add(new GunWeapon(context));
         currentWeapon = 0;
 
         items = new HeldItem[50];
@@ -158,5 +157,8 @@ public class PlayerStats implements Statsheet {
             items[i] = items[i+1];
         }
 
+    }
+    public void addWeapon(Weapon weapon){
+        weapons.add(weapon);
     }
 }

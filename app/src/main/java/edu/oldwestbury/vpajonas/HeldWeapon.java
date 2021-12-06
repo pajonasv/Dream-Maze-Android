@@ -1,28 +1,28 @@
 package edu.oldwestbury.vpajonas;
 
-public class RecoveryHeartHeldItem implements HeldItem {
+public class HeldWeapon implements HeldItem {
+
     private String name;
     private String description;
     private boolean usable;
     private PlayerStats playerStats;
     private Player player;
+    private Weapon weapon;
 
-    private int amountHealed;
-
-    public RecoveryHeartHeldItem(PlayerStats passedPlayerStats){
-        name = "Recovery Heart";
-        description = "Recovers HP.";
+    public HeldWeapon(PlayerStats passedPlayerStats, Weapon weaponPassed){
+        weapon = weaponPassed;
+        name = weapon.getName();
+        description = "Use to equip";
         usable = true;
-        amountHealed = 40;
         playerStats = passedPlayerStats;
         player = passedPlayerStats.getPlayer();
+
     }
 
     @Override
     public void Use() {
-        if (usable){
-            playerStats.setHP(playerStats.getHP() + amountHealed);
-
+        if(usable) {
+            playerStats.addWeapon(weapon);
         }
     }
 

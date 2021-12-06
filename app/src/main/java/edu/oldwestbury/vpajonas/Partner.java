@@ -29,6 +29,7 @@ public class Partner implements Actor {
 
     private Actor target;
     private Stats stats;
+    private SpriteIndex spriteIndex;
 
     private ScreenXYPositionFinder screenXYPosFin;
 
@@ -44,7 +45,6 @@ public class Partner implements Actor {
         tileY = player.getTileY();
         xSpd = 0;
         ySpd = 0;
-        tileSet[tileX][tileY].setActor(this);
 
 
 
@@ -66,6 +66,9 @@ public class Partner implements Actor {
         target = null;
 
         stats = new Stats();
+
+
+        spriteIndex = SpriteIndex.IDLE_FRONT;
     }
 
     @Override
@@ -76,7 +79,8 @@ public class Partner implements Actor {
                 tickText += "-Partner was defeated!";
                 return;
             }
-            if (!busy){
+
+            if(!busy){
                 refreshShape();
             }
             if(player.getTileX() + player.getXSpd() == tileX && player.getTileY() + player.getYSpd() == tileY){
@@ -149,7 +153,6 @@ public class Partner implements Actor {
                 return target;
             }
 
-            refreshShape();
         return null;
     }
 
@@ -290,13 +293,38 @@ public class Partner implements Actor {
         return stats;
     }
 
-    private void refreshShape(){
+    @Override
+    public void refreshShape(){
         shape = new Rect((tileX + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
                 (tileY + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH,
                 (tileX + 1 + screenXYPosFin.viewportXOffsetTiles - screenXYPosFin.viewPortXtiles) * screenXYPosFin.tileW * screenXYPosFin.modifierW,
                 (tileY + 1 + screenXYPosFin.viewportYOffsetTiles - screenXYPosFin.viewPortYtiles) * screenXYPosFin.tileH * screenXYPosFin.modifierH);
 
     }
+
+    @Override
+    public Rect getSpritePart() {
+        if(spriteIndex == SpriteIndex.IDLE_FRONT){
+            return new Rect(0,0,25,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_LEFT){
+            return new Rect(25,0,50,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_BACK){
+            return new Rect(50,0,75,25);
+
+        }
+        else if(spriteIndex == SpriteIndex.IDLE_RIGHT){
+            return new Rect(75,0,100,25);
+
+        }
+
+
+        return new Rect(0,0,150,150);
+    }
+
     private boolean canAttack(){
 
         if (tileSet[tileX + 1][tileY].getActor() instanceof Enemy) {
@@ -304,24 +332,32 @@ public class Partner implements Actor {
             ySpd = 0;
             behavior = ActTypes.ACT_ATTACK;
             target = tileSet[tileX + 1][tileY].getActor();
+
+
+            spriteIndex = SpriteIndex.IDLE_RIGHT;
             return true;
         } else if (tileSet[tileX - 1][tileY].getActor() instanceof Enemy) {
             xSpd = -1;
             ySpd = 0;
             behavior = ActTypes.ACT_ATTACK;
             target = tileSet[tileX - 1][tileY].getActor();
+
+            spriteIndex = SpriteIndex.IDLE_LEFT;
             return true;
         } else if (tileSet[tileX][tileY + 1].getActor() instanceof Enemy) {
             xSpd = 0;
             ySpd = 1;
             behavior = ActTypes.ACT_ATTACK;
             target = tileSet[tileX][tileY + 1].getActor();
+            spriteIndex = SpriteIndex.IDLE_FRONT;
             return true;
         } else if (tileSet[tileX][tileY - 1].getActor() instanceof Enemy) {
             xSpd = 0;
             ySpd = -1;
             behavior = ActTypes.ACT_ATTACK;
             target = tileSet[tileX][tileY - 1].getActor();
+
+            spriteIndex = SpriteIndex.IDLE_BACK;
             return true;
 
         }
@@ -337,9 +373,13 @@ public class Partner implements Actor {
                 xSpd = 1;
                 ySpd = 0;
 
+                spriteIndex = SpriteIndex.IDLE_RIGHT;
+
             } else {
                 xSpd = -1;
                 ySpd = 0;
+
+                spriteIndex = SpriteIndex.IDLE_LEFT;
 
             }
 
@@ -348,9 +388,14 @@ public class Partner implements Actor {
                     xSpd = 0;
                     ySpd = 1;
 
+                    spriteIndex = SpriteIndex.IDLE_FRONT;
+
                 } else {
                     xSpd = 0;
                     ySpd = -1;
+
+
+                    spriteIndex = SpriteIndex.IDLE_BACK;
                 }
             }
         } else if (Math.abs(xDif) < Math.abs(yDif)) {
@@ -358,25 +403,34 @@ public class Partner implements Actor {
                 xSpd = 0;
                 ySpd = 1;
 
+
+                spriteIndex = SpriteIndex.IDLE_FRONT;
+
             } else {
                 xSpd = 0;
                 ySpd = -1;
+
+                spriteIndex = SpriteIndex.IDLE_BACK;
             }
             if ((((tileSet[tileX + xSpd][tileY + ySpd].getActor() != null) && (tileSet[tileX + xSpd][tileY + ySpd].getActor() != following)) || tileSet[tileX + xSpd][tileY + ySpd].getIsSolid()) && xDif != 0) {
                 if (xDif > 0) {
                     xSpd = 1;
                     ySpd = 0;
 
+                    spriteIndex = SpriteIndex.IDLE_RIGHT;
+
                 } else {
                     xSpd = -1;
                     ySpd = 0;
+                    spriteIndex = SpriteIndex.IDLE_LEFT;
 
                 }
             }
         }
         behavior = ActTypes.ACT_MOVE;
 
-        if (((tileSet[tileX + xSpd][tileY + ySpd].getActor() != null) && (tileSet[tileX + xSpd][tileY + ySpd].getActor() != following)) || tileSet[tileX + xSpd][tileY + ySpd].getIsSolid()
+        if (((tileSet[tileX + xSpd][tileY + ySpd].getActor() != null) && ((tileSet[tileX + xSpd][tileY + ySpd].getActor() != following) && !(following.getBehavior() == ActTypes.ACT_MOVE || following.getBehavior() == ActTypes.ACT_KEEPMOVING)))
+                || tileSet[tileX + xSpd][tileY + ySpd].getIsSolid()
                 || tileSet[tileX + xSpd][tileY + ySpd] == tileSet[player.getTileX() + player.getXSpd()][player.getTileY() + player.getYSpd()]) {
             behavior = ActTypes.ACT_DONOTHING;
             return false;
@@ -384,6 +438,7 @@ public class Partner implements Actor {
         }
         return true;
     }
+
 
     public class Stats implements Statsheet{
         private int maxHP;
